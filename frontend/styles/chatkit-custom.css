@@ -1,0 +1,273 @@
+/* ChatKit Custom Theme - TaskFlow Branding (Purple/Dark) */
+
+/* CSS Variables for ChatKit Theme */
+:root {
+  /* Brand Colors */
+  --brand-purple: #DB76F8;
+  --brand-purple-hover: #c459e0;
+  --brand-purple-dark: #a847c1;
+  --brand-bg: #000000;
+  --brand-chat-dark: #280447;
+  --brand-chat-light: #3a1a6a;
+
+  /* ChatKit Color Overrides */
+  --primary-color: var(--brand-purple);
+  --secondary-color: var(--brand-purple);
+  --background-color: transparent;
+  --message-bg-incoming: rgba(40, 4, 71, 0.5); /* Brand card bg translucent */
+  --message-bg-outgoing: rgba(219, 118, 248, 0.2); /* Brand purple translucent */
+  --message-text-incoming: #ffffff;
+  --message-text-outgoing: #ffffff;
+}
+
+/* Main Container */
+.cs-main-container {
+  background-color: transparent !important;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+}
+
+/* Chat Container */
+.cs-chat-container {
+  background-color: transparent !important;
+}
+
+/* Message List */
+.cs-message-list {
+  background-color: transparent !important;
+  padding: 1rem;
+}
+
+/* Incoming Messages (AI) */
+.cs-message--incoming .cs-message__content {
+  background-color: rgba(40, 4, 71, 0.6) !important;
+  backdrop-filter: blur(8px);
+  color: #ffffff !important;
+  border: 1px solid rgba(219, 118, 248, 0.2);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.cs-message--incoming .cs-message__content:hover {
+  border-color: rgba(219, 118, 248, 0.4);
+  box-shadow: 0 6px 20px rgba(219, 118, 248, 0.1);
+}
+
+/* Outgoing Messages (User) */
+.cs-message--outgoing .cs-message__content {
+  background-color: rgba(219, 118, 248, 0.25) !important;
+  backdrop-filter: blur(8px);
+  color: #ffffff !important;
+  border: 1px solid rgba(219, 118, 248, 0.4);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 15px rgba(219, 118, 248, 0.1);
+  transition: all 0.3s ease;
+}
+
+.cs-message--outgoing .cs-message__content:hover {
+  background-color: rgba(219, 118, 248, 0.3) !important;
+  border-color: var(--brand-purple);
+}
+
+/* Message Input */
+.cs-message-input {
+  border-top: 1px solid rgba(219, 118, 248, 0.2) !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(12px);
+  padding: 1.25rem;
+}
+
+.cs-message-input__content-editor {
+  background-color: rgba(40, 4, 71, 0.4) !important;
+  border: 1px solid rgba(219, 118, 248, 0.3) !important;
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  color: #ffffff !important;
+  transition: all 0.3s ease;
+}
+
+.cs-message-input__content-editor:focus {
+  border-color: var(--brand-purple) !important;
+  box-shadow: 0 0 0 2px rgba(219, 118, 248, 0.2);
+  outline: none;
+}
+
+.cs-message-input__content-editor::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Send Button */
+.cs-button--send {
+  background-color: var(--brand-purple) !important;
+  color: #ffffff !important;
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+  border: none;
+  margin-left: 0.5rem;
+}
+
+.cs-button--send:hover:not(:disabled) {
+  background-color: var(--brand-purple-hover) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(219, 118, 248, 0.4);
+}
+
+.cs-button--send:disabled {
+  background-color: rgba(219, 118, 248, 0.2) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Attachment Button */
+.cs-button--attachment {
+  color: var(--brand-purple) !important;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.cs-button--attachment:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Conversation Header */
+.cs-conversation-header {
+  background-color: rgba(40, 4, 71, 0.4) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(219, 118, 248, 0.2);
+  padding: 1rem;
+}
+
+.cs-conversation-header__user-name {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.cs-conversation-header__info {
+  color: var(--brand-purple) !important;
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+/* Avatar */
+.cs-avatar {
+  border: 1.5px solid var(--brand-purple);
+  box-shadow: 0 0 10px rgba(219, 118, 248, 0.3);
+}
+
+/* Typing Indicator */
+.cs-typing-indicator {
+  background-color: rgba(40, 4, 71, 0.6) !important;
+  border: 1px solid rgba(219, 118, 248, 0.2);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.cs-typing-indicator__dot {
+  background-color: var(--brand-purple) !important;
+}
+
+/* Message Separator */
+.cs-message-separator {
+  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 0.75rem;
+}
+
+.cs-message-separator__line {
+  border-color: rgba(219, 118, 248, 0.1) !important;
+}
+
+/* Scrollbar for message list */
+.cs-message-list__scroll-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cs-message-list__scroll-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cs-message-list__scroll-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(219, 118, 248, 0.3);
+  border-radius: 10px;
+}
+
+.cs-message-list__scroll-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-purple);
+}
+
+/* Animations */
+.cs-message {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Back Button */
+.cs-conversation-header__back {
+  color: var(--taskflow-teal) !important;
+  transition: all 0.3s ease;
+}
+
+.cs-conversation-header__back:hover {
+  color: var(--taskflow-orange) !important;
+  transform: scale(1.1);
+}
+
+/* Message Footer */
+.cs-message__footer {
+  padding-top: 0.5rem;
+}
+
+/* Message Header */
+.cs-message__header {
+  margin-bottom: 0.25rem;
+}
+
+.cs-message__sent-time {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* Custom Styles for Action Buttons */
+.message-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(240, 173, 83, 0.1);
+}
+
+.message-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+
+.message-action-button:hover {
+  background-color: rgba(240, 173, 83, 0.1);
+}
+
+.message-action-button:active {
+  transform: scale(0.95);
+}
+
+.message-action-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,0 +1,19 @@
+# Skill Layer Dependencies
+
+# MCP Client
+mcp>=0.1.0
+
+# HTTP Client for MCP server communication
+httpx>=0.25.0
+
+# Async support
+asyncio
+
+# Logging
+python-json-logger>=2.0.0
+
+# Type hints
+typing-extensions>=4.8.0
+
+# Pydantic for data validation
+pydantic>=2.5.0

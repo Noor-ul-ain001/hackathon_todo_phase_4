@@ -1,0 +1,557 @@
+import Head from 'next/head'
+import { useState, useEffect } from 'react'
+import '@chatscope/chat-ui-kit-styles/dist/default/styles.min.css'
+import '../styles/chatkit-custom.css'
+import {
+  MainContainer,
+  ChatContainer,
+  MessageList,
+  Message,
+  MessageInput,
+  TypingIndicator,
+  Avatar,
+  ConversationHeader,
+  MessageSeparator
+} from '@chatscope/chat-ui-kit-react'
+import { useVoiceRecognition } from '../hooks/useVoiceRecognition'
+import { useVoiceSynthesis } from '../hooks/useVoiceSynthesis'
+import {
+  MicrophoneIcon,
+  RecordingIcon,
+  SpeakerIcon,
+  SpeakerOffIcon,
+  LanguageIcon,
+  WaveformIcon,
+  AlertCircleIcon
+} from '../components/Icons'
+
+export default function Chat() {
+  // User state
+  const [userId] = useState('user_123')
+  const [conversationId, setConversationId] = useState(null)
+
+  // Chat state
+  const [messages, setMessages] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Voice feature state
+  const [selectedLanguage, setSelectedLanguage] = useState('en-US')
+  const [autoSpeak, setAutoSpeak] = useState(false)
+  const [showFeatureBanner, setShowFeatureBanner] = useState(true)
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+  // Initialize voice hooks
+  const {
+    isListening,
+    transcript,
+    error: voiceError,
+    isSupported: micSupported,
+    startListening,
+    stopListening,
+    resetTranscript
+  } = useVoiceRecognition({ language: selectedLanguage })
+
+  const {
+    isSpeaking,
+    isSupported: speakerSupported,
+    speak,
+    cancel: cancelSpeech
+  } = useVoiceSynthesis({ language: selectedLanguage })
+
+  // Add welcome message on mount
+  useEffect(() => {
+    setMessages([
+      {
+        message: "Hello! I'm your TaskFlow AI Assistant. I can help you create, manage, and organize your tasks using natural language. Try saying 'Add a new task' or 'Show my pending tasks'!",
+        sentTime: new Date().toISOString(),
+        sender: 'TaskFlow AI',
+        direction: 'incoming',
+        position: 'single'
+      }
+    ])
+  }, [])
+
+  const handleSend = async (message) => {
+    if (!message.trim() || isLoading) return
+
+    const currentInput = message
+
+    // Add user message
+    const userMessage = {
+      message: currentInput,
+      sentTime: new Date().toISOString(),
+      sender: 'You',
+      direction: 'outgoing',
+      position: 'single'
+    }
+
+    setMessages(prev => [...prev, userMessage])
+    setIsLoading(true)
+
+    try {
+      const response = await callBackendAPI(currentInput)
+
+      // Add bot message
+      const botMessage = {
+        message: response.response,
+        sentTime: new Date().toISOString(),
+        sender: 'TaskFlow AI',
+        direction: 'incoming',
+        position: 'single',
+        metadata: response.metadata,
+        tasksAffected: response.tasks_affected || []
+      }
+
+      setMessages(prev => [...prev, botMessage])
+
+      if (response.conversation_id && !conversationId) {
+        setConversationId(response.conversation_id)
+      }
+    } catch (error) {
+      console.error('API Error:', error)
+      const errorMessage = {
+        message: error.message || 'Sorry, I encountered an error. Please make sure the backend server is running.',
+        sentTime: new Date().toISOString(),
+        sender: 'System',
+        direction: 'incoming',
+        position: 'single',
+        type: 'error'
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const callBackendAPI = async (message) => {
+    const response = await fetch(`${API_BASE_URL}/api/${userId}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: message,
+        modality: 'text',
+        language: selectedLanguage,
+        conversation_id: conversationId,
+        metadata: {}
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
+  }
+
+  // Handle voice input
+  const handleVoiceInput = async () => {
+    if (isLoading) return
+
+    if (isListening) {
+      // Stop listening and send transcript
+      stopListening()
+      if (transcript.trim()) {
+        await handleSend(transcript)
+        resetTranscript()
+      }
+    } else {
+      // Start listening
+      startListening()
+    }
+  }
+
+  // Auto-speak bot responses
+  useEffect(() => {
+    if (autoSpeak && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage.direction === 'incoming' && lastMessage.sender !== 'System') {
+        speak(lastMessage.message)
+      }
+    }
+  }, [messages, autoSpeak, speak])
+
+  // Manual speaker button for specific message
+  const handleSpeakMessage = (message) => {
+    if (isSpeaking) {
+      cancelSpeech()
+    } else {
+      speak(message)
+    }
+  }
+
+  return (
+    <>
+      <Head>
+        <title>Chat - TaskFlow</title>
+        <meta name="description" content="TaskFlow AI Assistant" />
+      </Head>
+
+      {/* Header */}
+      <div className="bg-white/80 backdrop-blur-sm px-8 py-6 border-b-2 border-teal-100 animate-fadeInDown">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-700 mb-1 flex items-center space-x-2">
+              <span className="gradient-text">TaskFlow AI Assistant</span>
+              <span className="inline-flex items-center px-2 py-1 bg-teal-100 border border-teal-300 rounded-full text-xs text-teal-700 font-semibold">
+                Powered by Claude
+              </span>
+              <span className="inline-flex items-center px-2 py-1 bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-300 rounded-full text-xs text-purple-700 font-semibold animate-pulse">
+                🎤 Voice + اردو NEW
+              </span>
+            </h1>
+            <p className="text-slate-600 text-sm">Natural language task management with voice input and Urdu support</p>
+          </div>
+          {conversationId && (
+            <div className="text-slate-500 text-sm">
+              Conversation ID: {conversationId}
+            </div>
+          )}
+        </div>
+
+        {/* Feature Banner */}
+        {showFeatureBanner && (
+          <div className="mt-4 bg-gradient-to-r from-teal-50 to-cyan-50 border-2 border-teal-200 rounded-xl p-4 shadow-sm animate-fadeIn">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1">
+                <div className="bg-teal-500 rounded-full p-2 mt-1">
+                  <MicrophoneIcon size={20} color="white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-teal-900 mb-2 flex items-center gap-2">
+                    🎉 New Features Available!
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-white rounded-full p-1.5 mt-0.5">
+                        <MicrophoneIcon size={14} color="#14b8a6" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-teal-800">Voice Input</p>
+                        <p className="text-teal-700">Click the microphone to speak your tasks</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="bg-white rounded-full p-1.5 mt-0.5">
+                        <LanguageIcon size={14} color="#14b8a6" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-teal-800">Urdu Support</p>
+                        <p className="text-teal-700">Switch to اردو and use Urdu commands</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="bg-white rounded-full p-1.5 mt-0.5">
+                        <SpeakerIcon size={14} color="#14b8a6" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-teal-800">Auto-read</p>
+                        <p className="text-teal-700">Hear responses read aloud automatically</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <div className="bg-white rounded-full p-1.5 mt-0.5">
+                        <WaveformIcon size={14} color="#14b8a6" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-teal-800">Real-time</p>
+                        <p className="text-teal-700">See your speech converted to text live</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowFeatureBanner(false)}
+                className="text-teal-600 hover:text-teal-800 font-bold text-xl leading-none"
+                title="Close banner"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Chat Container */}
+      <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-teal-50/30 to-cyan-50/30">
+        <div style={{ position: 'relative', height: '100%' }}>
+          <MainContainer>
+            <ChatContainer>
+              <ConversationHeader>
+                <ConversationHeader.Back />
+                <Avatar
+                  src="https://ui-avatars.com/api/?name=TaskFlow+AI&background=14b8a6&color=fff&bold=true"
+                  name="TaskFlow AI"
+                />
+                <ConversationHeader.Content
+                  userName="TaskFlow AI Assistant"
+                  info={isLoading ? "Typing..." : "Online"}
+                />
+              </ConversationHeader>
+
+              <MessageList
+                typingIndicator={isLoading && <TypingIndicator content="TaskFlow AI is thinking..." />}
+                style={{
+                  backgroundColor: 'transparent'
+                }}
+              >
+                {messages.map((msg, index) => (
+                  <div key={index}>
+                    {index === 0 && (
+                      <MessageSeparator content={new Date(msg.sentTime).toLocaleDateString()} />
+                    )}
+                    {index > 0 && new Date(messages[index - 1].sentTime).toDateString() !== new Date(msg.sentTime).toDateString() && (
+                      <MessageSeparator content={new Date(msg.sentTime).toLocaleDateString()} />
+                    )}
+                    <Message
+                      model={{
+                        message: msg.message,
+                        sentTime: msg.sentTime,
+                        sender: msg.sender,
+                        direction: msg.direction,
+                        position: msg.position
+                      }}
+                      style={{
+                        backgroundColor: msg.direction === 'outgoing' ? '#14b8a6' : '#ffffff',
+                        color: msg.direction === 'outgoing' ? '#ffffff' : '#334155'
+                      }}
+                    >
+                      {msg.direction === 'incoming' && (
+                        <Avatar
+                          src={msg.sender === 'System'
+                            ? "https://ui-avatars.com/api/?name=System&background=ef4444&color=fff"
+                            : "https://ui-avatars.com/api/?name=TaskFlow+AI&background=14b8a6&color=fff&bold=true"
+                          }
+                          name={msg.sender}
+                        />
+                      )}
+                      <Message.Header sender={msg.sender} sentTime={new Date(msg.sentTime).toLocaleTimeString()} />
+                      {msg.tasksAffected && msg.tasksAffected.length > 0 && (
+                        <Message.Footer>
+                          <div style={{ fontSize: '0.75rem', opacity: 0.75 }}>
+                            ✓ Tasks affected: {msg.tasksAffected.join(', ')}
+                          </div>
+                        </Message.Footer>
+                      )}
+                    </Message>
+                  </div>
+                ))}
+              </MessageList>
+
+              {/* Voice Controls - Enhanced Visibility */}
+              <div className="voice-controls-enhanced">
+                <div className="voice-controls-header">
+                  <WaveformIcon size={16} color="#14b8a6" />
+                  <span className="voice-controls-title">Voice & Language Controls</span>
+                </div>
+
+                <div className="voice-controls">
+                  {/* Language Selector */}
+                  <div className="language-selector-wrapper" title="Select language for voice and text">
+                    <LanguageIcon size={20} className="language-icon" />
+                    <select
+                      value={selectedLanguage}
+                      onChange={(e) => setSelectedLanguage(e.target.value)}
+                      className="language-selector"
+                      disabled={isLoading}
+                    >
+                      <option value="en-US">🇺🇸 English</option>
+                      <option value="ur-PK">🇵🇰 اردو (Urdu)</option>
+                    </select>
+                  </div>
+
+                  {/* Auto-speak toggle */}
+                  <label className="auto-speak-label" title="Automatically read responses aloud">
+                    {autoSpeak ? (
+                      <SpeakerIcon size={20} color="#14b8a6" />
+                    ) : (
+                      <SpeakerOffIcon size={20} color="#94a3b8" />
+                    )}
+                    <input
+                      type="checkbox"
+                      checked={autoSpeak}
+                      onChange={(e) => setAutoSpeak(e.target.checked)}
+                      disabled={!speakerSupported}
+                    />
+                    <span className="checkbox-text">Auto-read</span>
+                  </label>
+
+                  {/* Microphone button - LARGE AND PROMINENT */}
+                  {micSupported ? (
+                    <button
+                      onClick={handleVoiceInput}
+                      disabled={isLoading}
+                      className={`voice-button-large ${isListening ? 'listening' : ''}`}
+                      title={isListening ? 'Click to stop recording' : 'Click to start voice input'}
+                    >
+                      {isListening ? (
+                        <>
+                          <RecordingIcon size={24} color="white" />
+                          <span>Stop Recording</span>
+                        </>
+                      ) : (
+                        <>
+                          <MicrophoneIcon size={24} color="white" />
+                          <span>🎤 Click to Speak</span>
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <div className="feature-unavailable">
+                      <AlertCircleIcon size={18} />
+                      <span>Voice input not supported in this browser. Use Chrome, Edge, or Safari.</span>
+                    </div>
+                  )}
+
+                  {/* Voice error display */}
+                  {voiceError && (
+                    <div className="voice-error">
+                      <AlertCircleIcon size={18} color="#ef4444" />
+                      <span>{voiceError}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Listening Indicator */}
+              {isListening && (
+                <div className="listening-indicator">
+                  <div className="listening-header">
+                    <WaveformIcon size={20} className="waveform-icon" />
+                    <span className="pulse-animation">Listening...</span>
+                  </div>
+                  {transcript && (
+                    <div className="transcript-preview">
+                      <div className="transcript-label">Transcript:</div>
+                      <p>{transcript}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <MessageInput
+                placeholder={isListening ? "Speak now..." : "Type a command... (e.g., 'Add task: Review PR')"}
+                onSend={handleSend}
+                disabled={isLoading || isListening}
+                attachButton={false}
+                style={{
+                  borderTop: '2px solid #99f6e4'
+                }}
+              />
+            </ChatContainer>
+          </MainContainer>
+
+          {/* Voice Controls - Enhanced Visibility - OUTSIDE ChatContainer */}
+          <div className="voice-controls-enhanced">
+            <div className="voice-controls-header">
+              <WaveformIcon size={16} color="#14b8a6" />
+              <span className="voice-controls-title">Voice & Language Controls</span>
+            </div>
+
+            <div className="voice-controls">
+              {/* Language Selector */}
+              <div className="language-selector-wrapper" title="Select language for voice and text">
+                <LanguageIcon size={20} className="language-icon" />
+                <select
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  className="language-selector"
+                  disabled={isLoading}
+                >
+                  <option value="en-US">🇺🇸 English</option>
+                  <option value="ur-PK">🇵🇰 اردو (Urdu)</option>
+                </select>
+              </div>
+
+              {/* Auto-speak toggle */}
+              <label className="auto-speak-label" title="Automatically read responses aloud">
+                {autoSpeak ? (
+                  <SpeakerIcon size={20} color="#14b8a6" />
+                ) : (
+                  <SpeakerOffIcon size={20} color="#94a3b8" />
+                )}
+                <input
+                  type="checkbox"
+                  checked={autoSpeak}
+                  onChange={(e) => setAutoSpeak(e.target.checked)}
+                  disabled={!speakerSupported}
+                />
+                <span className="checkbox-text">Auto-read</span>
+              </label>
+
+              {/* Microphone button - LARGE AND PROMINENT */}
+              {micSupported ? (
+                <button
+                  onClick={handleVoiceInput}
+                  disabled={isLoading}
+                  className={`voice-button-large ${isListening ? 'listening' : ''}`}
+                  title={isListening ? 'Click to stop recording' : 'Start voice input'}
+                >
+                  {isListening ? (
+                    <>
+                      <RecordingIcon size={24} color="white" />
+                      <span>Stop Recording</span>
+                    </>
+                  ) : (
+                    <>
+                      <MicrophoneIcon size={24} color="white" />
+                      <span>🎤 Click to Speak</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <div className="feature-unavailable">
+                  <AlertCircleIcon size={18} />
+                  <span>Voice input not supported in this browser. Use Chrome, Edge, or Safari.</span>
+                </div>
+              )}
+
+              {/* Voice error display */}
+              {voiceError && (
+                <div className="voice-error">
+                  <AlertCircleIcon size={18} color="#ef4444" />
+                  <span>{voiceError}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Listening Indicator */}
+          {isListening && (
+            <div className="listening-indicator">
+              <div className="listening-header">
+                <WaveformIcon size={20} className="waveform-icon" />
+                <span className="pulse-animation">Listening...</span>
+              </div>
+              {transcript && (
+                <div className="transcript-preview">
+                  <div className="transcript-label">Transcript:</div>
+                  <p>{transcript}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Quick Commands Helper */}
+        {messages.length <= 1 && (
+          <div className="absolute bottom-20 left-0 right-0 flex justify-center pointer-events-none">
+            <div className="bg-white/90 backdrop-blur-sm border-2 border-teal-200 rounded-2xl p-4 shadow-lg max-w-2xl mx-4">
+              <p className="text-slate-700 font-semibold mb-2 text-sm">Quick Commands:</p>
+              <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                <div>• Add new task: Review code</div>
+                <div>• Show pending tasks</div>
+                <div>• Complete task #1</div>
+                <div>• List all my tasks</div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}

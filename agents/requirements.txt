@@ -1,0 +1,25 @@
+# Agent Layer Dependencies
+
+# Claude SDK for AI agent execution
+anthropic>=0.10.0
+
+# OpenAI SDK (alternative to Claude)
+openai>=1.0.0
+
+# Async support
+asyncio
+
+# HTTP Client
+httpx>=0.25.0
+
+# Logging
+python-json-logger>=2.0.0
+
+# Type hints
+typing-extensions>=4.8.0
+
+# Pydantic for data validation
+pydantic>=2.5.0
+
+# Date/time parsing
+python-dateutil>=2.8.0

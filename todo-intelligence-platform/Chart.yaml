@@ -1,0 +1,33 @@
+apiVersion: v2
+name: todo-intelligence-platform
+description: A Cloud Native Todo Chatbot Platform with AI-assisted Operations
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.25.0-0"
+keywords:
+  - todo
+  - chatbot
+  - ai
+  - kubernetes
+  - helm
+home: https://github.com/your-org/todo-intelligence-platform
+sources:
+  - https://github.com/your-org/todo-intelligence-platform
+maintainers:
+  - name: Development Team
+icon: https://example.com/icon.png
+dependencies:
+  - name: backend
+    version: 0.1.0
+    condition: backend.enabled
+    repository: "file://./backend"
+  - name: frontend
+    version: 0.1.0
+    condition: frontend.enabled
+    repository: "file://./frontend"
+annotations:
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: Todo Intelligence Platform
+      url: https://github.com/your-org/todo-intelligence-platform

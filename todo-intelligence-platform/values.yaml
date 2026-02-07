@@ -1,0 +1,57 @@
+# Global values for the Todo Intelligence Platform
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Configuration for the backend service
+backend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-backend
+    pullPolicy: Never
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8000
+  ingress:
+    enabled: false
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+# Configuration for the frontend service
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-frontend
+    pullPolicy: Never
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 3000
+  ingress:
+    enabled: false
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
