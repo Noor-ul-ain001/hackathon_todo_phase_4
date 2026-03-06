@@ -148,9 +148,4 @@ affinity: {}
 # Environment variables for the frontend
 env:
   - name: NEXT_PUBLIC_API_URL
-    value: "http://backend-service:8000"
-  - name: NEXT_PUBLIC_OPENAI_DOMAIN_KEY
-    valueFrom:
-      secretKeyRef:
-        name: todo-secrets
-        key: openai-domain-key
+    value: "http://backend-service:7860"

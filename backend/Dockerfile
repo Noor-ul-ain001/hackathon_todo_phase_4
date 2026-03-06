@@ -24,6 +24,9 @@ FROM python:3.11.6-alpine AS production
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+# Install curl for healthcheck and runtime dependencies
+RUN apk add --no-cache curl
+
 # Create a non-root user
 RUN adduser -D -s /bin/sh worker
 
@@ -42,10 +45,10 @@ USER worker
 # Make sure scripts in .local are usable
 ENV PATH=/home/worker/.local/bin:$PATH
 
-EXPOSE 8000
+EXPOSE 7860
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
+  CMD curl -f http://localhost:7860/health || exit 1
 
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "7860", "--proxy-headers"]

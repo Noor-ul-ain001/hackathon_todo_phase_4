@@ -61,8 +61,8 @@ service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 8000
-  targetPort: 8000
+  port: 7860
+  targetPort: 7860
   annotations: {}
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
@@ -146,16 +146,13 @@ tolerations: []
 affinity: {}
 
 # Environment variables for the backend
+# Secrets (DATABASE_URL, JWT_SECRET_KEY, GROQ_API_KEY) are injected via Kubernetes Secrets
+# in the deployment template. Override here only for non-sensitive config.
 env:
-  - name: DATABASE_URL
-    value: "postgresql://todo_user:todo_password@postgres-service:5432/todo_db"
-  - name: OPENAI_API_KEY
-    valueFrom:
-      secretKeyRef:
-        name: todo-secrets
-        key: openai-api-key
-  - name: CORS_ORIGINS
-    value: '["http://localhost:3000", "http://frontend-service:3000"]'
+  - name: ALLOWED_ORIGINS
+    value: "http://frontend-service"
+  - name: ENVIRONMENT
+    value: "production"
 
 # Database configuration
 database:

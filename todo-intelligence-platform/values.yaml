@@ -14,7 +14,7 @@ backend:
     tag: "latest"
   service:
     type: ClusterIP
-    port: 8000
+    port: 7860
   ingress:
     enabled: false
   resources:

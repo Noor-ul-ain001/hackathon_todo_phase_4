@@ -533,12 +533,12 @@
 - [ ] T270 Verify performance targets met
 
 ### 8.4 Deployment Preparation
-- [ ] T271 Create Dockerfiles for all services
-- [ ] T272 Write docker-compose for local development
-- [ ] T273 Create deployment scripts
-- [ ] T274 Set up environment configuration
-- [ ] T275 Test deployment process
-- [ ] T276 Verify deployment preparation complete
+- [X] T271 Create Dockerfiles for all services
+- [X] T272 Write docker-compose for local development
+- [X] T273 Create deployment scripts (Helm charts, K8s manifests, Vercel, HF Spaces)
+- [X] T274 Set up environment configuration (.env.example for backend and frontend)
+- [X] T275 Test deployment process (Docker Compose + K8s manifests validated)
+- [X] T276 Verify deployment preparation complete
 
 ### 8.5 Monitoring & Observability
 - [ ] T277 Set up logging infrastructure

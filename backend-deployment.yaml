@@ -17,7 +17,7 @@ spec:
       annotations:
         dapr.io/enabled: "true"
         dapr.io/app-id: "todo-backend"
-        dapr.io/app-port: "8000"
+        dapr.io/app-port: "7860"
         dapr.io/components-path: "/components"
         dapr.io/config: "app-config"
         dapr.io/log-as-json: "true"
@@ -26,39 +26,49 @@ spec:
     spec:
       containers:
         - name: todo-backend
-          image: python:3.11-slim
-          command: ['sh', '-c']
-          args:
-            - |
-              apt-get update && apt-get install -y git && 
-              git clone https://github.com/microsoft/TODO-intelligence-platform-backend.git /app &&
-              cd /app &&
-              pip install --no-cache-dir -r requirements.txt &&
-              python -m src.main
+          # Build locally: docker build -t todo-backend:latest ./backend
+          # Then: minikube image load todo-backend:latest
+          image: todo-backend:latest
+          imagePullPolicy: Never
           ports:
-            - containerPort: 8000
+            - containerPort: 7860
           env:
             - name: DATABASE_URL
-              value: "postgresql://todo_user:todo_password@postgres-service:5432/todo_db"
-            - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: todo-secrets
-                  key: openai-api-key
-            - name: CORS_ORIGINS
-              value: '["http://*", "https://*"]'
+                  key: database-url
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: jwt-secret-key
+            - name: GROQ_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: todo-secrets
+                  key: groq-api-key
+            - name: ALLOWED_ORIGINS
+              value: "http://todo-frontend-service"
           livenessProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: 7860
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /health
-              port: 8000
+              port: 7860
             initialDelaySeconds: 5
             periodSeconds: 5
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -70,6 +80,6 @@ spec:
     app: todo-backend
   ports:
     - protocol: TCP
-      port: 8000
-      targetPort: 8000
+      port: 7860
+      targetPort: 7860
   type: ClusterIP

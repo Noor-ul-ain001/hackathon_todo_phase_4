@@ -26,26 +26,15 @@ spec:
     spec:
       containers:
         - name: todo-frontend
-          image: node:18-alpine
-          command: ['sh', '-c']
-          args:
-            - |
-              apk add --no-cache git &&
-              git clone https://github.com/microsoft/TODO-intelligence-platform-frontend.git /app &&
-              cd /app &&
-              npm install &&
-              npm run build &&
-              npm start
+          # Build locally: docker build -t todo-frontend:latest ./frontend
+          # Then: minikube image load todo-frontend:latest
+          image: todo-frontend:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 3000
           env:
             - name: NEXT_PUBLIC_API_URL
-              value: "http://todo-backend-service:8000"
-            - name: NEXT_PUBLIC_OPENAI_DOMAIN_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: todo-secrets
-                  key: openai-domain-key
+              value: "http://todo-backend-service:7860"
           livenessProbe:
             httpGet:
               path: /
@@ -58,6 +47,13 @@ spec:
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 5
+          resources:
+            limits:
+              cpu: 200m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
 ---
 apiVersion: v1
 kind: Service
